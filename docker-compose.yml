@@ -27,6 +27,17 @@ services:
       - broker_data:/var/lib/kafka/data
     networks:
       - kafka_net
+  postgres:
+    image: postgres:14.3
+#    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=2846
+      - POSTGRES_DB=friends_vpn
+    volumes:
+      - moodle_pgdata:/var/lib/postgresql/data
+    networks:
+      - kafka_net
 
   wireguard_VPN:
     build: ./wireguard_serv
@@ -38,6 +49,7 @@ services:
 
 volumes:
   broker_data:
+  moodle_pgdata:
 
 networks:
   kafka_net:
