@@ -36,8 +36,6 @@ class OutputData:
 		return ans
 
 
-
-
 class OutputParser:
 
 	@staticmethod
