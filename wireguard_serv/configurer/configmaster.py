@@ -1,8 +1,10 @@
+import random
 import subprocess
 import ipaddress
 
 
 # todo add logging
+# todo add exceptions
 # todo mb change to dataclass
 class WgInterfaceClient:
 	def __init__(self, private_key, address, DNS):
@@ -22,18 +24,18 @@ class WgInterface(WgInterfaceClient):
 
 
 class WgPeer:
-	def __init__(self, public_key, address):
+	def __init__(self, public_key, allowed_ip):
 		self.public_key = public_key
-		self.address = address
+		self.allowed_ip = allowed_ip
 
 
 class WgPeerClient(WgPeer):
-	def __init__(self, public_key, endpoint, endpoint_port, persistent_keepalive, allowed_ip=None):
+	def __init__(self, public_key, endpoint, endpoint_port, persistent_keepalive, allowed_ips=None):
 		super().__init__(public_key, None)
-		if allowed_ip is None:
-			self.allowed_ip = [ipaddress.ip_address("0.0.0.0/0")]
+		if allowed_ips is None:
+			self.allowed_ips = [ipaddress.ip_network("0.0.0.0/0")]
 		else:
-			self.allowed_ip = allowed_ip
+			self.allowed_ips = allowed_ips
 		self.endpoint = endpoint
 		self.endpoint_port = endpoint_port
 		self.persistent_keepalive = persistent_keepalive
@@ -44,15 +46,41 @@ class WgConfig:
 		self.interface = interface
 		self.peers = peers
 
+	def get_public_keys(self):
+		public_keys = []
+		for i in self.peers:
+			public_keys.append(i.public_key)
+		return public_keys
+
+	def get_ips_simple(self):
+		ips = []
+		for i in self.peers:
+			ips.append(i.address.network_address.split(".")[-1])
+		return ips
+
+	def set_interface(self, interface):
+		self.interface = interface
+
+	def add_peer(self, peer):
+		self.peers.append(peer)
+
+	def remove_peer_by_ip(self, simple_peer_ip):
+		index = self.get_ips_simple().index(simple_peer_ip)
+		self.peers.remove(index)
+
+	def remove_peer_by_public_key(self, public_key):
+		index = self.get_public_keys().index(public_key)
+		self.peers.remove(index)
+
 
 class WireguardKeys:
 	@staticmethod
 	def gen_private_key():
-		subprocess.getoutput("sudo wg genkey")
+		return subprocess.getoutput("sudo wg genkey")
 
 	@staticmethod
 	def gen_public_key():
-		subprocess.getoutput("sudo wg pubkey")
+		return subprocess.getoutput("sudo wg pubkey")
 
 
 class WireguardControl:
@@ -93,7 +121,7 @@ class ConfigParserWg:
 		private_key, address, listen_port, post_up, post_down = None, None, None, None, None
 		for line in part:
 			if "PrivateKey" in line: private_key = self.get_main_info(line)
-			if "Address" in line: address = ipaddress.ip_address(self.get_main_info(line))
+			if "Address" in line: address = ipaddress.ip_network(self.get_main_info(line))
 			if "ListenPort" in line: listen_port = int(self.get_main_info(line))
 			if "PostUp" in line: post_up = self.get_main_info(line)
 			if "PostDown" in line: post_down = self.get_main_info(line)
@@ -169,3 +197,37 @@ class ConfigWriterWg:
 		text = self.build_text(wg_config)
 		with open(self.path_to_file, "w") as file:
 			file.write(text)
+
+
+class ConfigPersonManager:
+	def __init__(self, path_to_config):
+		self.path_to_config = path_to_config
+		self.writer = ConfigWriterWg(path_to_config)
+		self.reader = ConfigParserWg(path_to_config)
+		self.controller = WireguardControl()
+		self.key_master = WireguardKeys()
+
+	def add_person(self, ip=None):
+		config = self.reader.parse_config()
+		ips = config.get_ips_simple()
+		if ip is None:
+			ip = random.randint(0, 255)
+			while ip in ips:
+				ip = random.randint(0, 255)
+		pub = self.key_master.gen_public_key()
+		pri = self.key_master.gen_public_key()
+		new_peer = WgPeer(pub, '10.0.0.{0}/32'.format(ip))
+		config.add_peer(new_peer)
+		self.writer.write(config)
+		return pub, pri
+
+	def remove_person_by_ip(self, ip):
+		config = self.reader.parse_config()
+		config.remove_peer_by_ip(ip)
+		self.writer.write(config)
+
+	def restart(self):
+		self.controller.restart()
+
+
+
