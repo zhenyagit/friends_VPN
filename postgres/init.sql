@@ -16,7 +16,8 @@ create table if not exists telegrams(
 create table if not exists stat_logs(
     id bigint generated always as identity,
     user_id int references users(id),
-    log_time timestamp,
+--     log_time timestamp,
+    log_time timestamp not null default now(),
     last_handshake timestamp,
     transfer_rx bigint,
     transfer_tx bigint,
