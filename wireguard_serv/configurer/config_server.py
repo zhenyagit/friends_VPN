@@ -1,7 +1,7 @@
 import subprocess
 import ipaddress
 import random
-from same_files.configmaster import WgConfig, WgPeer, WgInterface
+from same_files.config_master import WgConfig, WgPeer, WgInterface
 
 
 class WireguardKeys:

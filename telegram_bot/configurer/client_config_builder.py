@@ -1,6 +1,6 @@
 import ipaddress
 
-from same_files.configmaster import WgPeerClient, WgInterfaceClient
+from same_files.config_master import WgPeerClient, WgInterfaceClient
 import os
 
 class ClientConfigCreator:
