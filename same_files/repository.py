@@ -1,50 +1,59 @@
 import ipaddress
+import json
 import string
 from enum import Enum
+from typing import List
+
 import psycopg2
 from dataclasses import dataclass
 import datetime
 
-# sudo docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=2846 -e POSTGRES_DB=friends_vpn postgres:14.3
 # todo change to env variable
-
-@dataclass
-class User:
-	id : int
-	real_name: string
 
 
 @dataclass
 class Telegram:
-	user_id : int
-	telegram_name : string
-	telegram_nickname : string
-	telegram_id: string
+	id: int
+	telegram_name: string
+	telegram_nickname: string
 
 
 @dataclass
 class StatLogs:
-	conf_id : int
+	conf_id: int
 	log_time: datetime.datetime
-	last_handshake : datetime.datetime
-	transfer_rx : int
-	transfer_tx : int
+	last_handshake: datetime.datetime
+	transfer_rx: int
+	transfer_tx: int
+
 
 @dataclass
 class ConfStats:
-	conf_id : int
+	conf_id: int
 	stat: int
 	time: datetime.datetime
 
+
 @dataclass
 class WireguardClientConfs:
-	id : int
-	user_id: int
-	ip : ipaddress.IPv4Address
-	ip_mask : int
-	dns : ipaddress.IPv4Address
-	private_key : string
-	public_key : string
+	id: int
+	telegram_id: int
+	ip: ipaddress.IPv4Address
+	ip_mask: int
+	dns: ipaddress.IPv4Address
+	private_key: string
+	public_key: string
+
+	@staticmethod
+	def constructor_from_tuple(data):
+		conf_id = data[0]
+		tg_id = data[1]
+		ip = ipaddress.IPv4Address(data[2].split("/")[0])
+		ip_mask = data[3]
+		dns = ipaddress.IPv4Address(data[4].split("/")[0])
+		pri_k = data[5]
+		pub_k = data[6]
+		return WireguardClientConfs(conf_id,tg_id,ip,ip_mask,dns,pri_k,pub_k)
 
 
 class RequestBuilder:
@@ -55,23 +64,20 @@ class RequestBuilder:
 		get_id = 3
 
 	def __init__(self):
-		self.prefixes = ["""insert into {} ({}) values ({});""",
-						 """select {} from {};""",
-						 """DELETE FROM {} WHERE {} = {};""",
-						 """SELECT currval(pg_get_serial_sequence('{}', 'id'));"""
-						 ]
+		with open("queries.json", "r") as file:
+			self.queries = json.load(file)
 
 	@staticmethod
 	def class_values_to_str(obj):
 		list_val = list(obj.values())
-		str_line = ", ".join(map(lambda x: "'"+str(x)+"'", list_val))
+		str_line = ", ".join(map(lambda x: "'" + str(x) + "'", list_val))
 		print("values =", str_line)
 		return str_line
 
 	@staticmethod
 	def class_keys_to_str(obj):
 		list_val = list(obj.keys())
-		str_line = ", ".join(map(lambda x:str(x), list_val))
+		str_line = ", ".join(map(lambda x: str(x), list_val))
 		print("keys =", str_line)
 		return str_line
 
@@ -82,7 +88,8 @@ class RequestBuilder:
 			new_obj[key] = obj[key]
 		return new_obj
 
-	def remove_none(self, obj_dict):
+	@staticmethod
+	def remove_none(obj_dict):
 		filtered = {k: v for k, v in obj_dict.items() if v is not None}
 		obj_dict.clear()
 		obj_dict.update(filtered)
@@ -92,14 +99,22 @@ class RequestBuilder:
 		add_postfix = False
 		obj_values = obj_values.__dict__
 		if "id" in obj_values.keys():
-			del obj_values["id"]
-			add_postfix = True
+			if obj_values.get("id") is None:
+				add_postfix = True
 		self.remove_none(obj_values)
 		keys = self.class_keys_to_str(obj_values)
 		values = self.class_values_to_str(obj_values)
-		req =  self.prefixes[self.RequestTypes.insert.value].format(table, keys, values)
+		req = self.queries["insert"].format(table, keys, values)
 		if add_postfix:
-			req = req + "\n" + self.prefixes[self.RequestTypes.get_id.value].format(table)
+			req = req + "\n" + self.queries["get_last_id"].format(table)
+		return req
+
+	def get_user_by_id(self, u_id):
+		req = self.queries["get_user_by_id"].format(u_id)
+		return req
+
+	def get_configs_by_tg_id(self, u_id):
+		req = self.queries["get_configs_by_user_id"].format(u_id)
 		return req
 
 
@@ -141,27 +156,54 @@ class Repository:
 			return ans[0][0]
 		return ans
 
+	def get_user(self, u_id):
+		req = self.req_build.get_user_by_id(u_id)
+		ans = self.exec_command(req)
+		if len(ans) == 0:
+			return None
+		user = Telegram(*ans[0])
+		return user
+
+	def user_exist(self, u_id):
+		req = self.req_build.get_user_by_id(u_id)
+		ans = self.exec_command(req)
+		if len(ans) == 0:
+			return False
+		return True
+
+	def config_exist(self, u_id):
+		req = self.req_build.get_configs_by_tg_id(u_id)
+		ans = self.exec_command(req)
+		if len(ans) == 0:
+			return False
+		return True
+
+	def get_configs_by_tg_id(self, u_id)->List[WireguardClientConfs]:
+		req = self.req_build.get_configs_by_tg_id(u_id)
+		ans = self.exec_command(req)
+		configs = []
+		for item in ans:
+			configs.append(WireguardClientConfs.constructor_from_tuple(item))
+		return configs
+
+
+
 
 def test():
 	rep = Repository("friends_vpn", "postgres", "2846", "localhost")
-	print("-"*20, end="")
-	print("WRITE USER", end="")
-	print("-"*20)
-	user = User(None,  "zhenya")
-	user_id = rep.write_object(user)
-	print(user_id)
 
 	print("-" * 20, end="")
 	print("WRITE TELEGRAM", end="")
 	print("-" * 20)
-	tel = Telegram(user_id, "@imjs_man", "tel_nick", "tel_name")
+	tel = Telegram(2543648, "tel_name", "tel_nick")
 	tel_id = rep.write_object(tel)
 	print(tel_id)
 
 	print("-" * 20, end="")
 	print("WRITE WireGuardConf", end="")
 	print("-" * 20)
-	wcc = WireguardClientConfs(None, user_id, ipaddress.IPv4Address("10.0.0.6"), 24, ipaddress.IPv4Address("8.8.8.8"), "private_key", "pub_key")
+	wcc = WireguardClientConfs(None, 2543648, ipaddress.IPv4Address("10.0.0.6"), 24, ipaddress.IPv4Address("8.8.8.8"),
+							   "private_key", "pub_key")
 	wcc_id = rep.write_object(wcc)
 	print(wcc_id)
 
@@ -180,5 +222,14 @@ def test():
 	print(log_id)
 
 
-if __name__=="__main__":
-	test()
+def test2():
+	rep = Repository("friends_vpn", "postgres", "2846", "localhost")
+	data = rep.get_user(2543648)
+	print(data)
+	data = rep.get_configs_by_tg_id(2543648)
+	print(data)
+
+
+if __name__ == "__main__":
+	# test()
+	test2()

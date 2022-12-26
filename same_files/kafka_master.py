@@ -4,6 +4,7 @@ from kafka import KafkaProducer, KafkaConsumer
 from kafka.admin import KafkaAdminClient, NewTopic
 from threading import Thread
 
+
 class KafkaAdmin:
 	def __init__(self, servers=None):
 		if servers is None:
@@ -66,7 +67,6 @@ class KafkaReader:
 		self.subscribe_thread = Thread(target=self.subscribe_job, args=[call_back])
 		self.subscribe_thread.start()
 
-
 	def subscribe_job(self, call_back):
 		for message in self.reader:
 			message = message.value
@@ -74,7 +74,6 @@ class KafkaReader:
 			if not self.subscribed:
 				break
 		logging.info("Thread stop with topic " + self.topic)
-
 
 
 class KafkaWriter:
@@ -134,7 +133,6 @@ def demo():
 	time.sleep(10)
 	reader.unsubscribe()
 	time.sleep(10)
-
 
 
 if __name__ == "__main__":

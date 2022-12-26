@@ -1,7 +1,7 @@
 import ipaddress
-
 from same_files.config_master import WgPeerClient, WgInterfaceClient
 import os
+
 
 class ClientConfigCreator:
 	def __init__(self, interface:WgInterfaceClient, peer:WgPeerClient):

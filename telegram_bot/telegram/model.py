@@ -1,12 +1,117 @@
+import os
+
+from same_files.kafka_master import KafkaReader, KafkaWriter
+from same_files.repository import Repository, Telegram, WireguardClientConfs
+from view import View
+from same_files.config_master import WgPeerClient, WgInterfaceClient
+from ..configurer.client_config_builder import ClientConfigCreator, ConfWriterCli
+import random
+import ipaddress
 
 
-class TGModel:
-	def new_user(self):
-		text = "Привет, вы приняли участие в бета тесте бота \n" \
-			   "Этот бот раздает бесплатный(пока) vpn  для друзей\n" \
-			   "Чтобы воспользоваться vpn, скачайте Wireguard на свое устройство\n" \
-			   "Вот ссылка https://www.wireguard.com/install/\n" \
-			   "Для начала скажите как вас зовут (никому это не важно, никто не узнает)"
+class KafkaManager:
+	def __init__(self, reader:KafkaReader, view:View):
+		self.reader = reader
+		self.view = view
+
+
+class Model:
+	def __init__(self, view:View, kafka_writer: KafkaWriter, repo:Repository, ):
+		self.view = view
+		self.kafka_writer = kafka_writer
+		self.repo = repo
+
+	def check_user(self, u_id):
+		return self.repo.user_exist(u_id)
+
+	def create_file(self, config:WireguardClientConfs):
+		wic = WgInterfaceClient(config.private_key, config.ip, config.ip_mask, config.dns)
+		# fixme i think it wrong
+		wpc = WgPeerClient(config.public_key, os.getenv("SERVER_IP"), os.getenv("SERVER_PORT"), 20)
+		ccc = ClientConfigCreator(wic, wpc)
+		text = ccc.create_text()
+		cwc = ConfWriterCli("../temp/")
+		file_name = str(random.getrandbits(128))+".conf"
+		cwc.write_file(text, "../temp/"+file_name)
+
+		# fixme don't create file or save filename in db
+		return  file_name
+
+
+	def no_in_db(self, message):
+		self.view.send_hello(message.chat.id)
+		u_id = message.from_user.id
+		fn = message.from_user.full_name
+		un = message.from_user.username
+		temp_user = Telegram(u_id, fn, un)
+		self.repo.write_object(temp_user)
+		self.view.send_how_to_create_config(message.chat.id)
+
+
+	def start(self, message):
+		u_id = message.from_user.id
+		if not self.check_user(u_id):
+			self.no_in_db(message)
+		else:
+			if self.repo.config_exist(u_id):
+				self.view.send_help(message.chat.id)
+			else:
+				self.view.send_how_to_create_config(message.chat.id)
+
+	def get_new_config(self, message):
+		u_id = message.from_user.id
+		if not self.check_user(u_id):
+			self.no_in_db(message)
+		else:
+			if self.repo.config_exist(u_id):
+				if len(self.repo.get_configs_by_tg_id(u_id))>4:
+					self.view.send_too_many_configs(message.chat.id)
+					# todo wait while creating
+				else:
+					self.view.send_wait_sec(message.chat.id)
+					pass
+				#!!!!!!!!!!
+
+	def show_configs(self, message):
+		u_id = message.from_user.id
+		if not self.check_user(u_id):
+			self.no_in_db(message)
+		else:
+			if not self.repo.config_exist(u_id):
+				self.view.send_no_configs_yet(message.chat.id)
+				self.view.send_how_to_create_config(message.chat.id)
+			else:
+				self.view.send_config_list(message.chat.id, self.repo.get_configs_by_tg_id(u_id))
+
+
+	def get_config(self, message):
+		u_id = message.from_user.id
+		try:
+			config_id = int(message.text.split(" ")[1])
+		except Exception:
+			self.view.send_error(message.chat.id)
+			return
+		if not self.check_user(u_id):
+			self.no_in_db(message)
+		else:
+			if self.repo.config_exist(u_id):
+				config_list = self.repo.get_configs_by_tg_id(u_id)
+				temp_conf = None
+				for config in config_list:
+					if config.id == config_id:
+						temp_conf = config
+				if temp_conf is not None:
+					file_name = self.create_file(temp_conf)
+					self.view.send_dock(message.chat.id, file_name)
+				else:
+					self.view.send_wrong_conf_id(message.chat.id)
+
+
+
+	def help(self, message):
+		pass
+
+
 		
 
 

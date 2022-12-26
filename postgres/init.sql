@@ -1,19 +1,14 @@
-create table if not exists users(
-    id bigint generated always as identity,
-    real_name varchar,
-    primary key(id)
-);
-
 create table if not exists telegrams(
-    user_id bigint references users(id),
+    id bigint not null,
     telegram_name varchar,
     telegram_nickname varchar,
-    telegram_id varchar
+    primary key (id)
+
 );
 
 create table if not exists wireguard_client_confs(
     id bigint generated always as identity,
-    user_id bigint references users(id),
+    telegram_id bigint references telegrams(id),
     ip cidr,
     ip_mask int,
     dns cidr,
