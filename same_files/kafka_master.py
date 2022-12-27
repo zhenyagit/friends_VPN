@@ -60,6 +60,8 @@ class KafkaReader:
 			return None
 		if self.subscribed:
 			self.subscribed = False
+			self.subscribe_thread.join()
+			logging.info("Thread stop with topic " + self.topic)
 
 	def subscribe(self, call_back):
 		logging.info("Added thread with topic " + self.topic)
@@ -69,11 +71,9 @@ class KafkaReader:
 
 	def subscribe_job(self, call_back):
 		for message in self.reader:
-			message = message.value
 			call_back(message)
 			if not self.subscribed:
 				break
-		logging.info("Thread stop with topic " + self.topic)
 
 
 class KafkaWriter:
@@ -110,9 +110,6 @@ class KafkaWriter:
 
 def demo():
 	import time
-	admin = KafkaAdmin()
-	admin.check_topic_exist("test")
-
 	test_dict = {"priv": "hello_man",
 				 "name": "zhenya",
 				 "age": 25}
@@ -121,7 +118,8 @@ def demo():
 	writer.write("key", test_dict)
 
 	def printer(data):
-		print(data)
+		print(data.key.decode("ascii"))
+		print(data.value)
 
 	reader = KafkaReader("test")
 	reader.subscribe(printer)

@@ -3,9 +3,7 @@
 	"select": "select {} from {};",
 	"delete" : "delete from {} WHERE {} = {};",
 	"get_last_id" : "select currval(pg_get_serial_sequence('{}', 'id'));",
-	"get_user_by_id" : "select id, telegram_name, telegram_nickname from telegrams where id = {};",
+	"get_user_by_id" : "select id, telegram_name, telegram_nickname, telegram_chat_id from telegrams where id = {};",
 	"get_configs_by_user_id" : "select id, telegram_id,  ip , ip_mask, dns,   private_key , public_key from wireguard_client_confs where telegram_id = {};",
-	"too_many_configs" : "Man, у тебя уже много конфигов",
-	"error" : "Эээм, какие-то проблемы((",
-	"wrong_conf_id" : "Мальчик, это чужой конфиг"
+	"get_server_keys" : "select public_key, private_key  from server_keys;"
 }

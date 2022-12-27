@@ -56,6 +56,12 @@ class View:
 	def send_wrong_conf_id(self, chat_id):
 		self.bot.send_message(chat_id, self.saved_messages["wrong_conf_id"])
 
+	def send_config_done(self, chat_id, config_id):
+		text = self.saved_messages["config_done"].format(config_id, config_id)
+		self.bot.send_message(chat_id, text)
+
+
+
 
 
 

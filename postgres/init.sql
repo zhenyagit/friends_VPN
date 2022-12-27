@@ -2,6 +2,7 @@ create table if not exists telegrams(
     id bigint not null,
     telegram_name varchar,
     telegram_nickname varchar,
+    telegram_chat_id bigint not null,
     primary key (id)
 
 );
@@ -32,4 +33,8 @@ create table if not exists conf_stats(
 
 );
 
+create table if not exists server_keys(
+    public_key char(44),
+    private_key char(44)
+);
 

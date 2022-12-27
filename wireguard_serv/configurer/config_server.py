@@ -13,8 +13,21 @@ class WireguardKeys:
 	def gen_public_key():
 		return subprocess.getoutput("sudo wg pubkey")
 
+	@staticmethod
+	def get_serv_public_key(path_to_config=None):
+		if path_to_config is None:
+			path_to_config = "/etc/wireguard/"
+		return subprocess.getoutput("sudo cat " + path_to_config + "publickey")
+
+	@staticmethod
+	def get_serv_private_key(path_to_config=None):
+		if path_to_config is None:
+			path_to_config = "/etc/wireguard/"
+		return subprocess.getoutput("sudo cat " + path_to_config + "privatekey")
+
 
 class WireguardControl:
+	# todo logging pls
 	@staticmethod
 	def stop():
 		subprocess.getoutput("sudo wg-quick down")
@@ -60,7 +73,7 @@ class ConfigParserWg:
 			if "ListenPort" in line: listen_port = int(self.get_main_info(line))
 			if "PostUp" in line: post_up = self.get_main_info(line)
 			if "PostDown" in line: post_down = self.get_main_info(line)
-		interface = WgInterface(private_key, address,address_mask, listen_port, post_up, post_down)
+		interface = WgInterface(private_key, address, address_mask, listen_port, post_up, post_down)
 		return interface
 
 	@staticmethod
@@ -109,7 +122,8 @@ class ConfigWriterWg:
 	def build_interface_text(interface):
 		text = '[Interface]\n'
 		text = text + " = ".join(["PrivateKey", interface.private_key]) + "\n"
-		text = text + " = ".join(["Address", "/".join([interface.address.compressed, str(interface.address_mask)])]) + "\n"
+		text = text + " = ".join(
+			["Address", "/".join([interface.address.compressed, str(interface.address_mask)])]) + "\n"
 		text = text + " = ".join(["ListenPort", str(interface.listen_port)]) + "\n"
 		text = text + " = ".join(["PostUp", interface.post_up]) + "\n"
 		text = text + " = ".join(["PostDown", interface.post_down]) + "\n\n"
@@ -121,7 +135,8 @@ class ConfigWriterWg:
 		for peer in peers:
 			text = text + '[Peer]\n'
 			text = text + " = ".join(["PublicKey", peer.public_key]) + "\n"
-			text = text + " = ".join(["AllowedIPs", "/".join([peer.allowed_ip.compressed, str(peer.allowed_ip_mask)])]) + "\n\n"
+			text = text + " = ".join(
+				["AllowedIPs", "/".join([peer.allowed_ip.compressed, str(peer.allowed_ip_mask)])]) + "\n\n"
 		return text
 
 	def build_text(self, wg_config):
@@ -152,10 +167,11 @@ class ConfigPersonManager:
 				ip = random.randint(0, 255)
 		pub = self.key_master.gen_public_key()
 		pri = self.key_master.gen_private_key()
-		new_peer = WgPeer(pub, ipaddress.IPv4Address('10.0.0.{0}'.format(ip)), 32)
+		ip_add = ipaddress.IPv4Address('10.0.0.{0}'.format(ip))
+		new_peer = WgPeer(pub, ip_add, 32)
 		config.add_peer(new_peer)
 		self.writer.write(config)
-		return pub, pri
+		return pub, pri, ip_add
 
 	def remove_person_by_ip(self, ip):
 		config = self.reader.parse_config()
@@ -176,5 +192,5 @@ def test():
 	print(cpm.add_person())
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 	test()

@@ -10,12 +10,17 @@ import datetime
 
 # todo change to env variable
 
+@dataclass
+class ServerKey:
+	public_key: string
+	private_key: string
 
 @dataclass
 class Telegram:
 	id: int
 	telegram_name: string
 	telegram_nickname: string
+	telegram_chat_id: int
 
 
 @dataclass
@@ -117,6 +122,10 @@ class RequestBuilder:
 		req = self.queries["get_configs_by_user_id"].format(u_id)
 		return req
 
+	def get_server_keys(self):
+		req = self.queries["get_server_keys"]
+		return req
+
 
 class Repository:
 	class Tables(Enum):
@@ -125,6 +134,8 @@ class Repository:
 		stat_log = "stat_logs"
 		conf_stat = "conf_stats"
 		wireguard_client_conf = "wireguard_client_confs"
+		server_keys = "server_keys"
+
 
 	object_table = {
 		"User": Tables.user.value,
@@ -132,6 +143,7 @@ class Repository:
 		"StatLogs": Tables.stat_log.value,
 		"ConfStats": Tables.conf_stat.value,
 		"WireguardClientConfs": Tables.wireguard_client_conf.value,
+		"ServerKey": Tables.server_keys.value,
 	}
 
 	def __init__(self, dbname, user, password, host):
@@ -185,6 +197,13 @@ class Repository:
 		for item in ans:
 			configs.append(WireguardClientConfs.constructor_from_tuple(item))
 		return configs
+
+	def get_server_keys(self):
+		req = self.req_build.get_server_keys()
+		ans = self.exec_command(req)
+		if len(ans) == 0:
+			return None
+		return ServerKey(*ans[0])
 
 
 
