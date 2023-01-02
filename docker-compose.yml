@@ -27,6 +27,7 @@ services:
       - broker_data:/var/lib/kafka/data
     networks:
       - kafka_net
+
   postgres:
     image: postgres:14.3
 #    restart: always
@@ -39,7 +40,7 @@ services:
     networks:
       - kafka_net
 
-  wireguard_VPN:
+  wireguard_vpn:
     build: ./wireguard_serv
     #    container_name: wireguard_VPN
     environment:
