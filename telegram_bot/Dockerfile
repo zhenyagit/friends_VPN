@@ -2,7 +2,7 @@ FROM python:3.7-slim
 WORKDIR /app
 
 RUN  apt-get update -y
-RUN  apt-get install libpq-dev
+RUN  apt-get install libpq-dev -y
 COPY telegram_bot/requirements.txt .
 RUN  pip install -r requirements.txt
 
