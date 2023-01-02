@@ -3,14 +3,12 @@ import ipaddress
 
 from same_files.repository import Repository, ServerKey, WireguardClientConfs
 from same_files.kafka_master import KafkaReader, KafkaWriter
-from same_files.config_master import WgConfig, WgPeer
-from config_server import ConfigPersonManager, WireguardControl, WireguardKeys
+from config_server import ConfigPersonManager,  WireguardKeys
 
 
 class WireguardServ:
 	def __init__(self, path_to_config, repo: Repository):
 		self.repo = repo
-		# self.path_to_config = path_to_config
 		self.config_master = ConfigPersonManager(path_to_config)
 		self.check_keys()
 
