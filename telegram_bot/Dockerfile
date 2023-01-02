@@ -1,11 +1,7 @@
-FROM linuxserver/wireguard:1.0.20210914
+FROM python:3.7-slim
 WORKDIR /app
 
 RUN  apt-get update -y
-
-ENV PYTHONUNBUFFERED=1
-RUN apt-get install -y  python3 python3-pip
-RUN pip3 install --no-cache --upgrade pip setuptools
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt

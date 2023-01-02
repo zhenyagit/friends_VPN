@@ -1,8 +1,10 @@
 import json
 from typing import List
-
+import os
 from same_files.repository import WireguardClientConfs
 from telebot import TeleBot
+import logging
+logging = logging.getLogger(__name__)
 
 
 class View:
@@ -12,7 +14,7 @@ class View:
 
 	@staticmethod
 	def load_messages():
-		with open("message_texts.json", "r") as file:
+		with open(os.path.dirname(os.path.abspath(__file__))+"/message_texts.json", "r", encoding="utf-8") as file:
 			data = json.load(file)
 		return data
 

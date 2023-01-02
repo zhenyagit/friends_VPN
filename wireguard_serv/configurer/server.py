@@ -1,9 +1,8 @@
-# wg genkey | tee /etc/wireguard/$1_privatekey | wg pubkey | tee /etc/wireguard/$1_publickey
 import ipaddress
 
 from same_files.repository import Repository, ServerKey, WireguardClientConfs
 from same_files.kafka_master import KafkaReader, KafkaWriter
-from config_server import ConfigPersonManager,  WireguardKeys
+from .config_server import ConfigPersonManager,  WireguardKeys
 
 
 class WireguardServ:
@@ -36,7 +35,7 @@ class KafkaManager:
 		self.reader.subscribe(self.handler)
 
 	def handler(self, message):
-		chat_id = message.key
+		chat_id = message.value["chat_id"]
 		user_id = message.value["user_id"]
 		conf_id = self.server.add_person(user_id)
 		data = {"status": 1,

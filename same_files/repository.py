@@ -1,12 +1,14 @@
 import ipaddress
 import json
+import os
 import string
 from enum import Enum
 from typing import List
-
+import logging
 import psycopg2
 from dataclasses import dataclass
 import datetime
+logging = logging.getLogger(__name__)
 
 # todo change to env variable
 
@@ -69,21 +71,19 @@ class RequestBuilder:
 		get_id = 3
 
 	def __init__(self):
-		with open("queries.json", "r") as file:
+		with open(os.path.dirname(os.path.abspath(__file__))+"/queries.json", "r") as file:
 			self.queries = json.load(file)
 
 	@staticmethod
 	def class_values_to_str(obj):
 		list_val = list(obj.values())
 		str_line = ", ".join(map(lambda x: "'" + str(x) + "'", list_val))
-		print("values =", str_line)
 		return str_line
 
 	@staticmethod
 	def class_keys_to_str(obj):
 		list_val = list(obj.keys())
 		str_line = ", ".join(map(lambda x: str(x), list_val))
-		print("keys =", str_line)
 		return str_line
 
 	@staticmethod
@@ -153,6 +153,7 @@ class Repository:
 
 	def exec_command(self, command):
 		ans = None
+		logging.info(command)
 		self.cursor.execute(command)
 		if self.cursor.pgresult_ptr is not None:
 			ans = self.cursor.fetchall()
@@ -162,7 +163,6 @@ class Repository:
 	def write_object(self, obj):
 		table = self.object_table[obj.__class__.__name__]
 		command = self.req_build.get_insert(table, obj)
-		print(command)
 		ans = self.exec_command(command)
 		if ans is not None:
 			return ans[0][0]
@@ -174,6 +174,7 @@ class Repository:
 		if len(ans) == 0:
 			return None
 		user = Telegram(*ans[0])
+		logging.info("Get user: " + str(user))
 		return user
 
 	def user_exist(self, u_id):

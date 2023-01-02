@@ -3,6 +3,7 @@ import logging
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.admin import KafkaAdminClient, NewTopic
 from threading import Thread
+logging = logging.getLogger(__name__)
 
 
 class KafkaAdmin:
@@ -20,9 +21,8 @@ class KafkaAdmin:
 		consumer = KafkaConsumer(group_id='checker', bootstrap_servers=self.servers)
 		topics = consumer.topics()
 		logging.info("Check topic exist %s", topic)
-		for i in topics:
-			logging.info("Topic exist %s", i)
 		if topic in topics:
+			logging.info("Topic exist %s", topic)
 			return True
 		else:
 			return False
@@ -100,9 +100,10 @@ class KafkaWriter:
 	def write(self, key, data: dict):
 		logging.debug("Write to Kafka at %s to topic %s data: %s", str(self.servers), self.topic, str(data))
 		try:
-			self.producer.send(self.topic, key=key.encode("ascii"), value=data)
+			self.producer.send(self.topic, key=key.encode('ascii'), value=data)
 		except Exception as ex:
-			logging.error("Kafka Error while write to %s topic", self.topic)
+			logging.error("Error while write to %s topic", self.topic)
+			logging.error(str(ex))
 
 	def wait_done(self):
 		self.producer.flush()
