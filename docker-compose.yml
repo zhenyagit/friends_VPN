@@ -27,6 +27,9 @@ services:
       - broker_data:/var/lib/kafka/data
     networks:
       - kafka_net
+    ports:
+      - "9092:9092"
+
 
   postgres:
     image: postgres:14.3
@@ -40,6 +43,8 @@ services:
       - moodle_pgdata:/var/lib/postgresql/data
     networks:
       - kafka_net
+    ports:
+      - "5432:5432"
 
   wireguard_vpn:
     build: ./wireguard_serv
