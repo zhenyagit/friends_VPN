@@ -22,7 +22,7 @@ def main():
 	kafka_done_topic = os.getenv("KAFKA_DONE_TOPIC")
 
 	repo = Repository(db_name, db_user, db_pass, db_host)
-	wg_serv = WireguardServ("./config/wg0.conf", repo)
+	wg_serv = WireguardServ("/config/wg0.conf", repo)
 
 	kafka_reader = KafkaReader(kafka_jobs_topic, kafka_servers)
 	kafka_writer = KafkaWriter(kafka_done_topic, kafka_servers)
