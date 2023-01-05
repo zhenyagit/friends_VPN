@@ -1,6 +1,6 @@
-CREATE USER postgres;
-CREATE DATABASE friends_vpn;
-GRANT ALL PRIVILEGES ON DATABASE friends_vpn TO postgres;
+-- CREATE USER postgres;
+-- CREATE DATABASE friends_vpn;
+-- GRANT ALL PRIVILEGES ON DATABASE friends_vpn TO postgres;
 
 create table if not exists telegrams(
     id bigint not null,
