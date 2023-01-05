@@ -1,3 +1,5 @@
+import time
+
 from configurer.server import WireguardServ, KafkaManager
 from same_files.repository import Repository
 from same_files.kafka_master import KafkaReader, KafkaWriter
@@ -13,6 +15,9 @@ def main():
 	else:
 		logging.basicConfig(level=logging.DEBUG)
 		print("logging in DEBUG mode")
+	delay = os.getenv("DELAY")
+	if delay is not None:
+		time.sleep(int(delay))
 	db_name = os.getenv("DB_NAME")
 	db_user = os.getenv("DB_USER")
 	db_pass = os.getenv("DB_PASS")

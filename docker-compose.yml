@@ -1,25 +1,25 @@
 version: '3.2'
 
 services:
-  zookeeper:
+  kafka_zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
-    container_name: zookeeper
+    container_name: kafka_zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - kafka_net
 
-  broker:
+  kafka_broker:
     image: confluentinc/cp-kafka:7.0.1
-    container_name: broker
+    container_name: kafka_broker
     depends_on:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: 'kafka_zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka_broker:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -30,40 +30,61 @@ services:
     ports:
       - "9092:9092"
 
-  postgres2:
+  postgres:
     build:
       context: ./postgres
       dockerfile: Dockerfile
     container_name: postgres2
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=2846
-      - POSTGRES_DB=friends_vpn
+      - POSTGRES_USER:postgres
+      - POSTGRES_PASSWORD:2846
+      - POSTGRES_DB:friends_vpn
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-
-  postgres:
-    image: postgres:14.3
-    container_name: postgres
-    #    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=2846
-      - POSTGRES_DB=friends_vpn
-    volumes:
-      - pg_data:/var/lib/postgresql/data
     networks:
       - kafka_net
-    ports:
-      - "5432:5432"
+
+  telegram_bot:
+    build:
+      context: .
+      dockerfile: telegram/Dockerfile
+    environment:
+      - TELEGRAM_TOKEN:${TELEGRAM_TOKEN}
+      - DB_NAME:friends_vpn
+      - DB_USER:postgres
+      - DB_PASS:2846
+      - DB_HOST:postgres
+      - KAFKA_JOBS_TOPIC:jobs
+      - KAFKA_DONE_TOPIC:done
+      - KAFKA_SERVERS:kafka_broker:29092
+      - DEBUG:no
+      - DELAY:30
+    networks:
+      - kafka_net
 
   wireguard_vpn:
-    build: ./wireguard_serv
-    #    container_name: wireguard_VPN
+    build:
+      context: .
+      dockerfile: wireguard_serv/Dockerfile
     environment:
-      DELAY: 30
+      - DB_NAME:friends_vpn
+      - DB_USER:postgres
+      - DB_PASS:2846
+      - DB_HOST:postgres
+      - KAFKA_JOBS_TOPIC:jobs
+      - KAFKA_DONE_TOPIC:done
+      - KAFKA_SERVERS:kafka_broker:29092
+      - DEBUG:no
+      - DELAY:30
+      - PUID:1000
+      - PGID:1000
+      - PEERS:1
+      - TZ:Europe/London
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
     networks:
       - kafka_net
 

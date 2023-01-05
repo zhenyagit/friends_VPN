@@ -1,3 +1,4 @@
+import time
 from telebot import TeleBot
 from telegram.model import Model, KafkaManager
 from telegram.view import View
@@ -16,6 +17,9 @@ def main():
 	else:
 		logging.basicConfig(level=logging.DEBUG)
 		print("logging in DEBUG mode")
+	delay = os.getenv("DELAY")
+	if delay is not None:
+		time.sleep(int(delay))
 	token = os.getenv("TELEGRAM_TOKEN")
 	db_name = os.getenv("DB_NAME")
 	db_user = os.getenv("DB_USER")
