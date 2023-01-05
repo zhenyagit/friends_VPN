@@ -35,6 +35,8 @@ services:
       context: ./postgres
       dockerfile: Dockerfile
     container_name: postgres2
+    environment:
+      - POSTGRES_PASSWORD=2846
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
