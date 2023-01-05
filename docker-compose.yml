@@ -60,7 +60,7 @@ services:
       KAFKA_DONE_TOPIC: done
       KAFKA_SERVERS: "kafka_broker:29092"
       DEBUG: "no"
-      DELAY: 30
+      DELAY: 50
     networks:
       - kafka_net
 
@@ -77,7 +77,7 @@ services:
       KAFKA_DONE_TOPIC: done
       KAFKA_SERVERS: "kafka_broker:29092"
       DEBUG: "no"
-      DELAY: 30
+      DELAY: 50
       PUID: 1000
       PGID: 1000
       PEERS: 1
