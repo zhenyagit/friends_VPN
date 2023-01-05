@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get install -y  python3 python3-pip
 RUN pip3 install --no-cache --upgrade pip setuptools
 
-COPY requirements.txt .
+COPY wireguard_serv/requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY wireguard_serv/configurer/* ./configurer/
