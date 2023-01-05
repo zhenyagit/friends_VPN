@@ -36,9 +36,9 @@ services:
       dockerfile: Dockerfile
     container_name: postgres2
     environment:
-      - POSTGRES_USER:postgres
-      - POSTGRES_PASSWORD:2846
-      - POSTGRES_DB:friends_vpn
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2846
+      POSTGRES_DB: friends_vpn
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
@@ -51,16 +51,16 @@ services:
       context: .
       dockerfile: telegram_bot/Dockerfile
     environment:
-      - TELEGRAM_TOKEN:${TELEGRAM_TOKEN}
-      - DB_NAME:friends_vpn
-      - DB_USER:postgres
-      - DB_PASS:2846
-      - DB_HOST:postgres
-      - KAFKA_JOBS_TOPIC:jobs
-      - KAFKA_DONE_TOPIC:done
-      - KAFKA_SERVERS:kafka_broker:29092
-      - DEBUG:no
-      - DELAY:30
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      DB_NAME: friends_vpn
+      DB_USER: postgres
+      DB_PASS: 2846
+      DB_HOST: postgres
+      KAFKA_JOBS_TOPIC: jobs
+      KAFKA_DONE_TOPIC: done
+      KAFKA_SERVERS: kafka_broker:29092
+      DEBUG: no
+      DELAY: 30
     networks:
       - kafka_net
 
@@ -69,19 +69,19 @@ services:
       context: .
       dockerfile: wireguard_serv/Dockerfile
     environment:
-      - DB_NAME:friends_vpn
-      - DB_USER:postgres
-      - DB_PASS:2846
-      - DB_HOST:postgres
-      - KAFKA_JOBS_TOPIC:jobs
-      - KAFKA_DONE_TOPIC:done
-      - KAFKA_SERVERS:kafka_broker:29092
-      - DEBUG:no
-      - DELAY:30
-      - PUID:1000
-      - PGID:1000
-      - PEERS:1
-      - TZ:Europe/London
+      DB_NAME: friends_vpn
+      DB_USER: postgres
+      DB_PASS: 2846
+      DB_HOST: postgres
+      KAFKA_JOBS_TOPIC: jobs
+      KAFKA_DONE_TOPIC: done
+      KAFKA_SERVERS: kafka_broker:29092
+      DEBUG: no
+      DELAY: 30
+      PUID: 1000
+      PGID: 1000
+      PEERS: 1
+      TZ: Europe/London
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
