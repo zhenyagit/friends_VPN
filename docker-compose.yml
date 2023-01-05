@@ -36,7 +36,9 @@ services:
       dockerfile: Dockerfile
     container_name: postgres2
     environment:
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=2846
+      - POSTGRES_DB=friends_vpn
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
