@@ -29,6 +29,7 @@ def main():
 	kafka_jobs_topic = os.getenv("KAFKA_JOBS_TOPIC")
 	kafka_done_topic = os.getenv("KAFKA_DONE_TOPIC")
 
+	logging.info("TELEGRAM_TOKEN=%s", token)
 	bot = TeleBot(token)
 	repo = Repository(db_name, db_user, db_pass, db_host)
 	kafka_reader = KafkaReader(kafka_done_topic, kafka_servers)
