@@ -58,8 +58,8 @@ services:
       DB_HOST: postgres
       KAFKA_JOBS_TOPIC: jobs
       KAFKA_DONE_TOPIC: done
-      KAFKA_SERVERS: kafka_broker:29092
-      DEBUG: no
+      KAFKA_SERVERS: "kafka_broker:29092"
+      DEBUG: "no"
       DELAY: 30
     networks:
       - kafka_net
@@ -75,8 +75,8 @@ services:
       DB_HOST: postgres
       KAFKA_JOBS_TOPIC: jobs
       KAFKA_DONE_TOPIC: done
-      KAFKA_SERVERS: kafka_broker:29092
-      DEBUG: no
+      KAFKA_SERVERS: "kafka_broker:29092"
+      DEBUG: "no"
       DELAY: 30
       PUID: 1000
       PGID: 1000
