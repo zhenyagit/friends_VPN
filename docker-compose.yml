@@ -14,7 +14,7 @@ services:
     image: confluentinc/cp-kafka:7.0.1
     container_name: kafka_broker
     depends_on:
-      - zookeeper
+      - kafka_zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'kafka_zookeeper:2181'
