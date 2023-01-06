@@ -40,4 +40,4 @@ class KafkaManager:
 		conf_id = self.server.add_person(user_id)
 		data = {"status": 1,
 				"config_id": conf_id}
-		self.writer.write(chat_id, data)
+		self.writer.write(str(chat_id), data)
