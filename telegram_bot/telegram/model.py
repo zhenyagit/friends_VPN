@@ -116,6 +116,7 @@ class Model:
 		except Exception:
 			self.view.send_error(message.chat.id)
 			return
+		logging.info("Send config file {} to chat {}".format(config_id,message.chat.id ))
 		if not self.check_user(u_id):
 			self.no_in_db(message)
 		else:
@@ -126,8 +127,10 @@ class Model:
 					if config.id == config_id:
 						temp_conf = config
 				if temp_conf is not None:
+					logging.info("Send config file {} to chat {}, config founded".format(config_id, message.chat.id))
 					file_name = self.create_file(temp_conf)
-					self.view.send_dock(message.chat.id, file_name)
+					logging.info("Send config file {} to chat {}, send".format(config_id, message.chat.id))
+					self.view.send_dock(message.chat.id, "../temp/"+file_name)
 				else:
 					self.view.send_wrong_conf_id(message.chat.id)
 			else:
