@@ -3,7 +3,7 @@ FROM ubuntu
 RUN apt-get update && \
  apt-get install -y --no-install-recommends wireguard-tools iptables nano net-tools procps openresolv inotify-tools && \
  apt install -y iproute2 &&\
- apt-get clean \
+ apt-get clean
 
 ENV PYTHONUNBUFFERED=1
 RUN apt-get install -y --no-install-recommends build-essential libpq-dev python3 python3-pip &&\
