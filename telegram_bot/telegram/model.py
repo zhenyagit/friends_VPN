@@ -36,14 +36,14 @@ class Model:
 	def check_user(self, u_id):
 		return self.repo.user_exist(u_id)
 
-	def create_file(self, config: WireguardClientConfs):
+	def create_file(self, config: WireguardClientConfs, name, id):
 		wic = WgInterfaceClient(config.private_key, config.ip, config.ip_mask, config.dns)
 		# fixme i think it wrong
 		wpc = WgPeerClient(self.server_keys.public_key, os.getenv("SERVER_IP"), os.getenv("SERVER_PORT"), 20)
 		ccc = ClientConfigCreator(wic, wpc)
 		text = ccc.create_text()
 		cwc = ConfWriterCli("../temp/")
-		file_name = str(random.getrandbits(128)) + ".conf"
+		file_name = name+"_"+str(id) + ".conf"
 		cwc.write_file(text, "../temp/" + file_name)
 
 		# fixme don't create file or save filename in db
@@ -128,7 +128,7 @@ class Model:
 						temp_conf = config
 				if temp_conf is not None:
 					logging.info("Send config file {} to chat {}, config founded".format(config_id, message.chat.id))
-					file_name = self.create_file(temp_conf)
+					file_name = self.create_file(temp_conf, message.from_user.full_name, config_id)
 					logging.info("Send config file {} to chat {}, send".format(config_id, message.chat.id))
 					self.view.send_dock(message.chat.id, "../temp/"+file_name)
 				else:

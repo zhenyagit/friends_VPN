@@ -81,7 +81,8 @@ services:
       PUID: 1000
       PGID: 1000
       TZ: Europe/London
-      os.getenv("SERVER_IP"), os.getenv("SERVER_PORT")
+      SERVER_IP: ${SERVER_IP}
+      SERVER_PORT: ${SERVER_PORT}
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
