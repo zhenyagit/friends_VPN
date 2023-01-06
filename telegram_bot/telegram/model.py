@@ -18,7 +18,7 @@ class KafkaManager:
 		self.reader.subscribe(self.handler)
 
 	def handler(self, message):
-		chat_id = message.key
+		chat_id = int(message.key)
 		data = message.value
 		if data["status"] == 1:
 			self.view.send_config_done(chat_id, data["config_id"])
