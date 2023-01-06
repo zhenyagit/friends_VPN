@@ -12,10 +12,6 @@ RUN pip3 install --no-cache --upgrade pip setuptools
 
 WORKDIR /app
 ENV PATH="/app:${PATH}"
-ENV IPTABLES_MASQ=1
-ENV WATCH_CHANGES=0
-COPY wireguard_serv/run /app
-RUN chmod 755 /app/*
 VOLUME /etc/wireguard
 
 COPY wireguard_serv/requirements.txt .
