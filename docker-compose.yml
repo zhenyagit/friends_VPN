@@ -87,7 +87,7 @@ services:
       - SYS_ADMIN
     networks:
       - kafka_net
-
+51832
 volumes:
   broker_data:
   pg_data:

@@ -1,3 +1,5 @@
+import logging
+import os.path
 import subprocess
 import ipaddress
 import random
@@ -7,38 +9,52 @@ from same_files.config_master import WgConfig, WgPeer, WgInterface
 class WireguardKeys:
 	@staticmethod
 	def gen_private_key():
-		return subprocess.getoutput("sudo wg genkey")
+		return subprocess.getoutput("wg genkey")
 
 	@staticmethod
-	def gen_public_key():
-		return subprocess.getoutput("sudo wg pubkey")
+	def gen_public_key(private_key):
+		return subprocess.getoutput("echo {} | wg pubkey".format(private_key))
 
 	@staticmethod
 	def get_serv_public_key(path_to_config=None):
 		if path_to_config is None:
 			path_to_config = "/etc/wireguard/"
-		return subprocess.getoutput("sudo cat " + path_to_config + "publickey")
+		return subprocess.getoutput("cat " + path_to_config + "publickey")
 
 	@staticmethod
 	def get_serv_private_key(path_to_config=None):
 		if path_to_config is None:
 			path_to_config = "/etc/wireguard/"
-		return subprocess.getoutput("sudo cat " + path_to_config + "privatekey")
+		return subprocess.getoutput("cat " + path_to_config + "privatekey")
+
+	@staticmethod
+	def write_serv_public_key(pub_key, path_to_config=None):
+		if path_to_config is None:
+			path_to_config = "/etc/wireguard/"
+		with open(path_to_config + "publickey", "w") as file:
+			file.write(pub_key)
+
+	@staticmethod
+	def write_serv_private_key(pri_key, path_to_config=None):
+		if path_to_config is None:
+			path_to_config = "/etc/wireguard/"
+		with open(path_to_config + "privatekey", "w") as file:
+			file.write(pri_key)
 
 
 class WireguardControl:
 	# todo logging pls
 	@staticmethod
 	def stop():
-		subprocess.getoutput("sudo wg-quick down")
+		subprocess.getoutput("wg-quick down")
 
 	@staticmethod
 	def start():
-		subprocess.getoutput("sudo wg-quick up")
+		subprocess.getoutput("wg-quick up")
 
 	@staticmethod
 	def restart():
-		subprocess.getoutput("sudo wg-quick down && sudo wg-quick up")
+		subprocess.getoutput("wg-quick down && wg-quick up")
 
 
 class ConfigParserWg:
@@ -158,6 +174,21 @@ class ConfigPersonManager:
 		self.controller = WireguardControl()
 		self.key_master = WireguardKeys()
 
+	def check_and_create_config(self):
+		if not os.path.exists(self.path_to_config):
+			logging.info("Creating init wg config file")
+			pri_key = self.key_master.gen_private_key()
+			pub_key = self.key_master.gen_public_key(pri_key)
+			self.key_master.write_serv_private_key(pri_key)
+			self.key_master.write_serv_public_key(pub_key)
+			peer_pri = self.key_master.gen_private_key()
+			peer_pub = self.key_master.gen_public_key(peer_pri)
+			# todo change ports to env var
+			interface = WgInterface(pri_key, ipaddress.IPv4Address("10.0.0.1"), 24, 51832)
+			peer = WgPeer(peer_pub, ipaddress.IPv4Address("10.0.0.4"), 32)
+			conf = WgConfig(interface, [peer])
+			self.writer.write(conf)
+
 	def add_person(self, ip=None):
 		config = self.reader.parse_config()
 		ips = config.get_ips_simple()
@@ -165,8 +196,8 @@ class ConfigPersonManager:
 			ip = random.randint(0, 255)
 			while ip in ips:
 				ip = random.randint(0, 255)
-		pub = self.key_master.gen_public_key()
 		pri = self.key_master.gen_private_key()
+		pub = self.key_master.gen_public_key(pri)
 		ip_add = ipaddress.IPv4Address('10.0.0.{0}'.format(ip))
 		new_peer = WgPeer(pub, ip_add, 32)
 		config.add_peer(new_peer)
@@ -184,8 +215,8 @@ class ConfigPersonManager:
 
 def test():
 	cpm = ConfigPersonManager("../config/wg0.conf")
-	pub = cpm.key_master.gen_public_key()
 	pri = cpm.key_master.gen_private_key()
+	pub = cpm.key_master.gen_public_key(pri)
 	print(pub)
 	print(pri)
 	config = cpm.reader.parse_config()

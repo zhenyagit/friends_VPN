@@ -1,13 +1,22 @@
-FROM linuxserver/wireguard:1.0.20210914
-WORKDIR /app
+FROM ubuntu
 
-RUN apt-get update -y
+RUN apt-get update && \
+ apt-get install -y --no-install-recommends wireguard-tools iptables nano net-tools procps openresolv inotify-tools && \
+ apt install -y iproute2 &&\
+ apt-get clean \
 
 ENV PYTHONUNBUFFERED=1
-RUN  apt-get install libpq-dev -y
-RUN  apt-get install build-essential -y
-RUN apt-get install -y  python3 python3-pip
+RUN apt-get install -y --no-install-recommends build-essential libpq-dev python3 python3-pip &&\
+ apt-get clean
 RUN pip3 install --no-cache --upgrade pip setuptools
+
+WORKDIR /app
+ENV PATH="/app:${PATH}"
+ENV IPTABLES_MASQ=1
+ENV WATCH_CHANGES=0
+COPY wireguard_serv/run /app
+RUN chmod 755 /app/*
+VOLUME /etc/wireguard
 
 COPY wireguard_serv/requirements.txt .
 RUN pip install -r requirements.txt
