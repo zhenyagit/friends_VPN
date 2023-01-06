@@ -80,14 +80,15 @@ services:
       DELAY: 50
       PUID: 1000
       PGID: 1000
-      PEERS: 1
       TZ: Europe/London
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
     networks:
       - kafka_net
-51832
+    ports:
+      - "51832:51832/udp"
+
 volumes:
   broker_data:
   pg_data:
