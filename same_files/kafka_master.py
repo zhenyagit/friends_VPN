@@ -1,5 +1,7 @@
 import json
 import logging
+
+import kafka.errors
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.admin import KafkaAdminClient, NewTopic
 from threading import Thread
@@ -36,7 +38,10 @@ class KafkaAdmin:
 		topic_list = [NewTopic(name=topic_name,
 							   num_partitions=num_partitions,
 							   replication_factor=replication_factor)]
-		self.admin_client.create_topics(new_topics=topic_list, validate_only=False)
+		try:
+			self.admin_client.create_topics(new_topics=topic_list, validate_only=False)
+		except kafka.errors.TopicAlreadyExistsError as ex:
+			logging.warning(str(ex))
 
 
 class KafkaReader:
