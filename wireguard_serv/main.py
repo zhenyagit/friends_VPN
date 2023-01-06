@@ -22,6 +22,12 @@ def main():
 	db_user = os.getenv("DB_USER")
 	db_pass = os.getenv("DB_PASS")
 	db_host = os.getenv("DB_HOST")
+	print(os.getenv("KAFKA_SERVERS"))
+	print(db_name)
+	print(db_user)
+	print(delay)
+	print(db_host)
+
 	kafka_servers = os.getenv("KAFKA_SEVERS").split(";")
 	kafka_jobs_topic = os.getenv("KAFKA_JOBS_TOPIC")
 	kafka_done_topic = os.getenv("KAFKA_DONE_TOPIC")
