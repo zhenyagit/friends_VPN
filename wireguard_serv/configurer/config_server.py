@@ -173,6 +173,7 @@ class ConfigPersonManager:
 		self.reader = ConfigParserWg(path_to_config)
 		self.controller = WireguardControl()
 		self.key_master = WireguardKeys()
+		self.check_and_create_config()
 
 	def check_and_create_config(self):
 		if not os.path.exists(self.path_to_config):
