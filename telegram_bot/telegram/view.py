@@ -50,7 +50,7 @@ class View:
 		text = [self.saved_messages["show_configs"]]
 		for config in configs:
 			text.append("/get_config {}".format(config.id))
-		self.bot.send_document(chat_id, "\n".join(text))
+		self.bot.send_message(chat_id, "\n".join(text))
 
 	def send_error(self, chat_id):
 		self.bot.send_message(chat_id, self.saved_messages["error"])
