@@ -54,7 +54,7 @@ class WireguardControl:
 
 	@staticmethod
 	def restart():
-		subprocess.getoutput("wg-quick down && wg-quick up")
+		subprocess.getoutput("wg-quick down wg0 && wg-quick up wg0")
 
 
 class ConfigParserWg:
