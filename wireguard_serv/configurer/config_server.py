@@ -203,6 +203,7 @@ class ConfigPersonManager:
 		new_peer = WgPeer(pub, ip_add, 32)
 		config.add_peer(new_peer)
 		self.writer.write(config)
+		self.restart()
 		return pub, pri, ip_add
 
 	def remove_person_by_ip(self, ip):
