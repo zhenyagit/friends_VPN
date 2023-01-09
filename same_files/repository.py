@@ -154,10 +154,13 @@ class Repository:
 	def exec_command(self, command):
 		ans = None
 		logging.info(command)
-		self.cursor.execute(command)
-		if self.cursor.pgresult_ptr is not None:
-			ans = self.cursor.fetchall()
-		self.conn.commit()
+		try:
+			self.cursor.execute(command)
+			if self.cursor.pgresult_ptr is not None:
+				ans = self.cursor.fetchall()
+			self.conn.commit()
+		except Exception as ex:
+			logging.error(ex)
 		return ans
 
 	def write_object(self, obj):

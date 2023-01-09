@@ -25,6 +25,7 @@ class WgInterface(WgInterfaceClient):
 		else:
 			self.post_down = post_down
 
+
 class WgPeer:
 	def __init__(self, public_key, allowed_ip, allowed_ip_mask):
 		self.public_key = public_key

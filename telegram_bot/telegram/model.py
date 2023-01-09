@@ -7,6 +7,7 @@ from .view import View
 from same_files.config_master import WgPeerClient, WgInterfaceClient
 from configurer.client_config_builder import ClientConfigCreator, ConfWriterCli
 import random
+
 logging = logging.getLogger(__name__)
 
 
@@ -28,26 +29,26 @@ class KafkaManager:
 
 
 class Model:
-	def __init__(self, view: View, kafka_writer: KafkaWriter, repo: Repository):
+	def __init__(self, view: View, kafka_writer: KafkaWriter, repo: Repository,
+				 server_ip: ipaddress.IPv4Address, server_port: int):
 		self.view = view
 		self.writer = kafka_writer
 		self.repo = repo
 		self.server_keys = self.repo.get_server_keys()
+		self.server_ip = server_ip
+		self.server_port = server_port
 
 	def check_user(self, u_id):
 		return self.repo.user_exist(u_id)
 
 	def create_file(self, config: WireguardClientConfs, name, u_id):
 		wic = WgInterfaceClient(config.private_key, config.ip, config.ip_mask, config.dns)
-		# fixme i think it wrong
-		wpc = WgPeerClient(self.server_keys.public_key, ipaddress.IPv4Address(os.getenv("SERVER_IP")), int(os.getenv("SERVER_PORT")), 20)
+		wpc = WgPeerClient(self.server_keys.public_key, self.server_ip, self.server_port, 20)
 		ccc = ClientConfigCreator(wic, wpc)
 		text = ccc.create_text()
-		cwc = ConfWriterCli("../temp/")
+		cwc = ConfWriterCli("/tmp/")
 		file_name = name + "_" + str(u_id) + ".conf"
-		cwc.write_file(text, "../temp/" + file_name)
-
-		# fixme don't create file or save filename in db
+		cwc.write_file(text, "/tmp/" + file_name)
 		return file_name
 
 	def kafka_send_job(self, message):
@@ -97,8 +98,6 @@ class Model:
 				self.view.send_wait_sec(message.chat.id)
 				self.kafka_send_job(message)
 
-	# !!!!!!!!!!
-
 	def show_configs(self, message):
 		u_id = message.from_user.id
 		if not self.check_user(u_id):
@@ -117,7 +116,7 @@ class Model:
 		except Exception:
 			self.view.send_error(message.chat.id)
 			return
-		logging.info("Send config file {} to chat {}".format(config_id,message.chat.id ))
+		logging.info("Send config file {} to chat {}".format(config_id, message.chat.id))
 		if not self.check_user(u_id):
 			self.no_in_db(message)
 		else:
@@ -131,7 +130,8 @@ class Model:
 					logging.info("Send config file {} to chat {}, config founded".format(config_id, message.chat.id))
 					file_name = self.create_file(temp_conf, message.from_user.full_name, config_id)
 					logging.info("Send config file {} to chat {}, send".format(config_id, message.chat.id))
-					self.view.send_dock(message.chat.id, "../temp/"+file_name)
+					self.view.send_dock(message.chat.id, "/tmp/" + file_name)
+					os.remove("/tmp/" + file_name)
 				else:
 					self.view.send_wrong_conf_id(message.chat.id)
 			else:

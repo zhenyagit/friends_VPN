@@ -1,4 +1,5 @@
 import ipaddress
+import logging
 
 from same_files.repository import Repository, ServerKey, WireguardClientConfs
 from same_files.kafka_master import KafkaReader, KafkaWriter
@@ -12,8 +13,10 @@ class WireguardServ:
 		self.check_keys()
 
 	def check_keys(self):
+		logging.info("Check server keys in db")
 		keys = self.repo.get_server_keys()
 		if keys is None:
+			logging.info("Create server keys")
 			wg_keys = WireguardKeys()
 			s_k = ServerKey(wg_keys.get_serv_public_key(), wg_keys.get_serv_private_key())
 			self.repo.write_object(s_k)
@@ -35,6 +38,7 @@ class KafkaManager:
 		self.reader.subscribe(self.handler)
 
 	def handler(self, message):
+		logging.info("Catch kafka message, value = {}".format(message.value))
 		chat_id = message.value["chat_id"]
 		user_id = message.value["user_id"]
 		conf_id = self.server.add_person(user_id)

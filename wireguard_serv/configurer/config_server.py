@@ -43,14 +43,17 @@ class WireguardKeys:
 
 
 class WireguardControl:
-	# todo logging pls
 	@staticmethod
 	def stop():
-		subprocess.getoutput("wg-quick down")
+		logging.info("Attempt to stop")
+		res = subprocess.getoutput("wg-quick down")
+		logging.info("Result: \n{}".format(res))
 
 	@staticmethod
 	def start():
-		subprocess.getoutput("wg-quick up")
+		logging.info("Attempt to start")
+		res = subprocess.getoutput("wg-quick up")
+		logging.info("Result: \n{}".format(res))
 
 	@staticmethod
 	def restart():
@@ -58,15 +61,16 @@ class WireguardControl:
 		a = subprocess.getoutput("wg-quick down wg0")
 		b = subprocess.getoutput("wg-quick up wg0")
 		logging.info("Restart result")
-		logging.info("\n".join([a,b]))
+		logging.info("\n".join([a, b]))
 
 
 class ConfigParserWg:
 	def __init__(self, path_to_file):
+		logging.info("Config parser obj created, path to config: {}".format(path_to_file))
 		self.path_to_file = path_to_file
 
-	# todo change . to ..
 	def read_config(self, path=None):
+		logging.debug("Read config file")
 		if path is None:
 			path = self.path_to_file
 		with open(path, "r") as file:
@@ -131,11 +135,20 @@ class ConfigParserWg:
 		peers_lines = text[text.index("[Peer]"):]
 		interface = self.parse_interface_part(interface_lines)
 		peers = self.parse_peers(peers_lines)
+		logging.info("Parsing result:\n")
+		logging.info("{}, {}, {}, {}".format(interface.private_key,
+											 interface.address,
+											 interface.address_mask,
+											 interface.listen_port))
+		for peer in peers:
+			logging.info("{}, {}".format(peer.public_key,
+										 peer.allowed_ip))
 		return WgConfig(interface, peers)
 
 
 class ConfigWriterWg:
 	def __init__(self, path_to_file):
+		logging.info("Created object config writer, path to file: {}".format(path_to_file))
 		self.path_to_file = path_to_file
 
 	@staticmethod
@@ -152,6 +165,7 @@ class ConfigWriterWg:
 	@staticmethod
 	def build_peers_text(peers):
 		text = ""
+		logging.info("Build peers part, now peers qty = {}", len(peers))
 		for peer in peers:
 			text = text + '[Peer]\n'
 			text = text + " = ".join(["PublicKey", peer.public_key]) + "\n"
@@ -160,42 +174,44 @@ class ConfigWriterWg:
 		return text
 
 	def build_text(self, wg_config):
+		logging.info("Build config text")
 		text = self.build_interface_text(wg_config.interface)
 		text = text + self.build_peers_text(wg_config.peers)
 		return text
 
 	def write(self, wg_config):
+		logging.info("Write config text")
 		text = self.build_text(wg_config)
 		with open(self.path_to_file, "w") as file:
 			file.write(text)
 
 
 class ConfigPersonManager:
-	def __init__(self, path_to_config):
+	def __init__(self, path_to_config, wg_port=51832):
 		self.path_to_config = path_to_config
 		self.writer = ConfigWriterWg(path_to_config)
 		self.reader = ConfigParserWg(path_to_config)
 		self.controller = WireguardControl()
 		self.key_master = WireguardKeys()
-		self.check_and_create_config()
+		self.check_and_create_config(wg_port)
 
-	def check_and_create_config(self):
+	def check_and_create_config(self, wg_port):
 		if not os.path.exists(self.path_to_config):
-			logging.info("Creating init wg config file")
+			logging.info("Creating init wg config file, wg port = {}".format(wg_port))
 			pri_key = self.key_master.gen_private_key()
 			pub_key = self.key_master.gen_public_key(pri_key)
 			self.key_master.write_serv_private_key(pri_key)
 			self.key_master.write_serv_public_key(pub_key)
 			peer_pri = self.key_master.gen_private_key()
 			peer_pub = self.key_master.gen_public_key(peer_pri)
-			# todo change ports to env var
-			interface = WgInterface(pri_key, ipaddress.IPv4Address("10.0.0.1"), 24, 51832)
+			interface = WgInterface(pri_key, ipaddress.IPv4Address("10.0.0.1"), 24, wg_port)
 			peer = WgPeer(peer_pub, ipaddress.IPv4Address("10.0.0.4"), 32)
 			conf = WgConfig(interface, [peer])
 			self.writer.write(conf)
 
 	def add_person(self, ip=None):
 		config = self.reader.parse_config()
+		logging.info("Attempt to add person to config file, peers now = {}".format(len(config.peers)))
 		ips = config.get_ips_simple()
 		if ip is None:
 			ip = random.randint(0, 255)

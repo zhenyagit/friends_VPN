@@ -4,11 +4,11 @@ import os
 
 
 class ClientConfigCreator:
-	def __init__(self, interface:WgInterfaceClient, peer:WgPeerClient):
+	def __init__(self, interface: WgInterfaceClient, peer: WgPeerClient):
 		self.interface = interface
 		self.peer = peer
 
-	def create_interface(self, interface:WgInterfaceClient= None):
+	def create_interface(self, interface: WgInterfaceClient = None):
 		if interface is None:
 			interface = self.interface
 		text = "[Interface]\n"
@@ -17,17 +17,17 @@ class ClientConfigCreator:
 		text = text + " = ".join(["DNS", str(interface.DNS)]) + "\n\n"
 		return text
 
-	def create_peer(self, peer:WgPeerClient= None):
+	def create_peer(self, peer: WgPeerClient = None):
 		if peer is None:
 			peer = self.peer
 		text = "[Peer]\n"
 		text = text + " = ".join(["PublicKey", peer.public_key]) + "\n"
 		text = text + " = ".join(["AllowedIPs", str(peer.allowed_ip)]) + "\n"
-		text = text + " = ".join(["Endpoint", ":".join([str(peer.endpoint),str(peer.endpoint_port)])]) + "\n"
+		text = text + " = ".join(["Endpoint", ":".join([str(peer.endpoint), str(peer.endpoint_port)])]) + "\n"
 		text = text + " = ".join(["PersistentKeepalive", str(peer.persistent_keepalive)]) + "\n\n"
 		return text
 
-	def create_text(self, interface= None, peer=None):
+	def create_text(self, interface=None, peer=None):
 		if interface is None or peer is None:
 			interface = self.interface
 			peer = self.peer
@@ -53,6 +53,7 @@ class ConfWriterCli:
 		with open(folder_path + filename, "w") as file:
 			file.write(text)
 
+
 #  todo check exist configs exceptions
 
 
@@ -66,7 +67,5 @@ def test():
 	cwc.write_file(text, "test.conf")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 	test()
-
-
