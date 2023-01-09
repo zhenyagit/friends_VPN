@@ -165,7 +165,7 @@ class ConfigWriterWg:
 	@staticmethod
 	def build_peers_text(peers):
 		text = ""
-		logging.info("Build peers part, now peers qty = {}", len(peers))
+		logging.info("Build peers part, now peers qty = {}".format(len(peers)))
 		for peer in peers:
 			text = text + '[Peer]\n'
 			text = text + " = ".join(["PublicKey", peer.public_key]) + "\n"

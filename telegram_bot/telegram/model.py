@@ -43,12 +43,18 @@ class Model:
 
 	def create_file(self, config: WireguardClientConfs, name, u_id):
 		wic = WgInterfaceClient(config.private_key, config.ip, config.ip_mask, config.dns)
+		print(self.server_ip)
+		print(self.server_port)
 		wpc = WgPeerClient(self.server_keys.public_key, self.server_ip, self.server_port, 20)
+		print("ok")
 		ccc = ClientConfigCreator(wic, wpc)
 		text = ccc.create_text()
+
 		cwc = ConfWriterCli("/tmp/")
+		print("cwc")
 		file_name = name + "_" + str(u_id) + ".conf"
 		cwc.write_file(text, "/tmp/" + file_name)
+		print("writen")
 		return file_name
 
 	def kafka_send_job(self, message):
