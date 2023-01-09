@@ -45,6 +45,9 @@ class Model:
 		wic = WgInterfaceClient(config.private_key, config.ip, config.ip_mask, config.dns)
 		print(self.server_ip)
 		print(self.server_port)
+		print(type(self.server_ip))
+		print(type(self.server_port))
+
 		wpc = WgPeerClient(self.server_keys.public_key, self.server_ip, self.server_port, 20)
 		print("ok")
 		ccc = ClientConfigCreator(wic, wpc)
