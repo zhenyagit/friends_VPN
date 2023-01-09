@@ -60,7 +60,7 @@ services:
       KAFKA_DONE_TOPIC: done
       KAFKA_SERVERS: "kafka_broker:29092"
       DEBUG: "no"
-      DELAY: 5
+      DELAY: 40
       SERVER_IP: ${SERVER_IP}
       SERVER_PORT: ${SERVER_PORT}
     networks:
@@ -79,7 +79,7 @@ services:
       KAFKA_DONE_TOPIC: done
       KAFKA_SERVERS: "kafka_broker:29092"
       DEBUG: "no"
-      DELAY: 50
+      DELAY: 40
       PUID: 1000
       PGID: 1000
       TZ: Europe/London
