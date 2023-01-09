@@ -1,3 +1,4 @@
+import ipaddress
 import time
 from telebot import TeleBot
 from telegram.model import Model, KafkaManager
@@ -25,6 +26,8 @@ def main():
 	db_user = os.getenv("DB_USER")
 	db_pass = os.getenv("DB_PASS")
 	db_host = os.getenv("DB_HOST")
+	s_ip = ipaddress.IPv4Address(os.getenv("SERVER_IP"))
+	s_port = int(os.getenv("SERVER_PORT"))
 	kafka_servers = os.getenv("KAFKA_SERVERS").split(";")
 	kafka_jobs_topic = os.getenv("KAFKA_JOBS_TOPIC")
 	kafka_done_topic = os.getenv("KAFKA_DONE_TOPIC")
@@ -36,7 +39,7 @@ def main():
 	kafka_writer = KafkaWriter(kafka_jobs_topic, kafka_servers)
 
 	view = View(bot)
-	model = Model(view, kafka_writer, repo)
+	model = Model(view, kafka_writer, repo, s_ip, s_port)
 	controller = Controller(bot, model)
 	kafka_mgr = KafkaManager(kafka_reader, view)
 
