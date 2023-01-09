@@ -60,7 +60,9 @@ services:
       KAFKA_DONE_TOPIC: done
       KAFKA_SERVERS: "kafka_broker:29092"
       DEBUG: "no"
-      DELAY: 50
+      DELAY: 5
+      SERVER_IP: ${SERVER_IP}
+      SERVER_PORT: ${SERVER_PORT}
     networks:
       - kafka_net
 
@@ -81,8 +83,6 @@ services:
       PUID: 1000
       PGID: 1000
       TZ: Europe/London
-      SERVER_IP: ${SERVER_IP}
-      SERVER_PORT: ${SERVER_PORT}
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN

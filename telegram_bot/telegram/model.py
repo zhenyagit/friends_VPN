@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 import os
 from same_files.kafka_master import KafkaReader, KafkaWriter
@@ -36,14 +37,14 @@ class Model:
 	def check_user(self, u_id):
 		return self.repo.user_exist(u_id)
 
-	def create_file(self, config: WireguardClientConfs, name, id):
+	def create_file(self, config: WireguardClientConfs, name, u_id):
 		wic = WgInterfaceClient(config.private_key, config.ip, config.ip_mask, config.dns)
 		# fixme i think it wrong
-		wpc = WgPeerClient(self.server_keys.public_key, os.getenv("SERVER_IP"), os.getenv("SERVER_PORT"), 20)
+		wpc = WgPeerClient(self.server_keys.public_key, ipaddress.IPv4Address(os.getenv("SERVER_IP")), int(os.getenv("SERVER_PORT")), 20)
 		ccc = ClientConfigCreator(wic, wpc)
 		text = ccc.create_text()
 		cwc = ConfWriterCli("../temp/")
-		file_name = name+"_"+str(id) + ".conf"
+		file_name = name + "_" + str(u_id) + ".conf"
 		cwc.write_file(text, "../temp/" + file_name)
 
 		# fixme don't create file or save filename in db
