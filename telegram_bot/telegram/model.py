@@ -53,10 +53,10 @@ class Model:
 		ccc = ClientConfigCreator(wic, wpc)
 		text = ccc.create_text()
 
-		cwc = ConfWriterCli("/tmp/")
+		cwc = ConfWriterCli("../temp/")
 		print("cwc")
 		file_name = name + "_" + str(u_id) + ".conf"
-		cwc.write_file(text, "/tmp/" + file_name)
+		cwc.write_file(text, "../temp/" + file_name)
 		print("writen")
 		return file_name
 
@@ -139,8 +139,8 @@ class Model:
 					logging.info("Send config file {} to chat {}, config founded".format(config_id, message.chat.id))
 					file_name = self.create_file(temp_conf, message.from_user.full_name, config_id)
 					logging.info("Send config file {} to chat {}, send".format(config_id, message.chat.id))
-					self.view.send_dock(message.chat.id, "/tmp/" + file_name)
-					os.remove("/tmp/" + file_name)
+					self.view.send_dock(message.chat.id, "../temp/" + file_name)
+					os.remove("../temp/" + file_name)
 				else:
 					self.view.send_wrong_conf_id(message.chat.id)
 			else:
